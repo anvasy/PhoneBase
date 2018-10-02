@@ -9,7 +9,10 @@ import com.company.model.Subscriber;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Properties;
@@ -35,6 +38,7 @@ public class TechnologistFrame extends JFrame {
     private JButton editSubscriber;
     private JButton editService;
     private JButton chooseSubscribers;
+    private JButton showServices;
     private JTextField number;
     private JTextField address;
     private JTextField fio;
@@ -49,6 +53,9 @@ public class TechnologistFrame extends JFrame {
     private UtilDateModel servModel;
     private JDatePanelImpl servPanel;
     private JDatePickerImpl servPicker;
+    private UtilDateModel chooseDateModel;
+    private JDatePanelImpl chooseDatePanel;
+    private JDatePickerImpl chooseDatePicker;
 
     public TechnologistFrame(DataBase db){
         this.db = db;
@@ -98,6 +105,11 @@ public class TechnologistFrame extends JFrame {
         regPicker = new JDatePickerImpl(regPanel, new DateComponentFormatter());
         addSubscriber = new JButton("Добавить абонента");
 
+        chooseDateModel = new UtilDateModel();
+        chooseDatePanel = new JDatePanelImpl(chooseDateModel, p);
+        chooseDatePicker = new JDatePickerImpl(chooseDatePanel, new DateComponentFormatter());
+        showServices = new JButton("Показать услуги");
+
         city = new JTextField("Населённый пункт",20);
         cost = new JTextField("Стоимость",20);
         privCost = new JTextField("Льготная стоимость",20);
@@ -125,14 +137,16 @@ public class TechnologistFrame extends JFrame {
         address.setBounds(50, 530, 150, 20);
         regPicker.setBounds(50, 555, 150, 30);
         addSubscriber.setBounds(50, 600, 150, 30);
-        city.setBounds(240, 480, 150, 20);
-        cost.setBounds(240, 505, 150, 20);
-        privCost.setBounds(240, 530, 150, 20);
-        servPicker.setBounds(240, 555, 150, 30);
-        addService.setBounds(240, 600, 150, 30);
-        chooseCity.setBounds(430, 480, 150, 20);
-        chooseMonth.setBounds(430, 505, 150, 20);
-        chooseSubscribers.setBounds(430, 540, 150, 30);
+        city.setBounds(260, 480, 150, 20);
+        cost.setBounds(260, 505, 150, 20);
+        privCost.setBounds(260, 530, 150, 20);
+        servPicker.setBounds(260, 555, 150, 30);
+        addService.setBounds(260, 600, 150, 30);
+        chooseCity.setBounds(470, 480, 150, 20);
+        chooseMonth.setBounds(470, 505, 150, 20);
+        chooseSubscribers.setBounds(470, 540, 150, 30);
+        chooseDatePicker.setBounds(680, 480, 150, 30);
+        showServices.setBounds(680, 515, 150, 30);
 
         panel.add(subscribers);
         panel.add(subsScroll);
@@ -155,6 +169,8 @@ public class TechnologistFrame extends JFrame {
         panel.add(chooseCity);
         panel.add(chooseMonth);
         panel.add(chooseSubscribers);
+        panel.add(chooseDatePicker);
+        panel.add(showServices);
         add(panel);
     }
 
@@ -222,8 +238,8 @@ public class TechnologistFrame extends JFrame {
                     Calendar cal = Calendar.getInstance();
                     Date date = (Date) servPicker.getModel().getValue();
                     cal.setTime(date);          //?????????????????????????????????????????????????????????????????????
-                    serv.insert(new Service(cal, city.getText(), Integer.valueOf(cost.getText()),
-                            Integer.valueOf(privCost.getText())));
+                    serv.insert(new Service(cal, city.getText(), Float.valueOf(cost.getText()),
+                            Float.valueOf(privCost.getText())));
                     servTable.updateTable(db.query("select * from services"));
                 } catch (SQLException ex) {
                     JOptionPane.showMessageDialog(null, "Error " + ex,
@@ -246,6 +262,7 @@ public class TechnologistFrame extends JFrame {
                         servTable.getSelectedRow(), 3))));
                     DaoServices serv = new DaoServices(db);
                     serv.update(service);
+                    servTable.updateTable(db.query("select * from services"));
                 } catch (ArrayIndexOutOfBoundsException ex) {
                     JOptionPane.showMessageDialog(null, "Выберите строку для редактирования.",
                             "error", JOptionPane.INFORMATION_MESSAGE);
@@ -268,6 +285,7 @@ public class TechnologistFrame extends JFrame {
                         subsTable.getSelectedRow(), 2)), cal);
                     DaoSubscribers subs = new DaoSubscribers(db);
                     subs.update(subscriber);
+                    subsTable.updateTable(db.query("select * from subscribers"));
                 } catch (ArrayIndexOutOfBoundsException ex) {
                     JOptionPane.showMessageDialog(null, "Выберите строку для редактирования.",
                             "error", JOptionPane.INFORMATION_MESSAGE);
@@ -284,9 +302,24 @@ public class TechnologistFrame extends JFrame {
                 String city = chooseCity.getText();
                 int month = Integer.valueOf(chooseMonth.getText());
                 try {
-                    new ResultFrame(db.query("select * from subscribers " +
-                            "inner join calls using (number) " +
-                            "where calls.city = '" + city + "'"));
+                    new ResultFrame(db.query("select call_date, number, fio from subscribers " +
+                            "left join calls using (number) " +
+                            "where calls.city = '" + city + "' AND MONTH(call_date) = " + month));
+                } catch (SQLException ex) {
+                    JOptionPane.showMessageDialog(null, "Error " + ex,
+                            "error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+        showServices.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    SimpleDateFormat formatter= new SimpleDateFormat("yyyy-MM-dd");
+                    Date date = (Date) chooseDatePicker.getModel().getValue();
+                    System.out.println(formatter.format(date));
+                    ResultSet rs = db.query("select * from services where ser_date = '" + formatter.format(date) +"'");
+                    new ResultFrame(rs);
                 } catch (SQLException ex) {
                     JOptionPane.showMessageDialog(null, "Error " + ex,
                             "error", JOptionPane.ERROR_MESSAGE);

@@ -12,14 +12,7 @@ public class Call {
 
     public Call(int callId, Calendar call_date, String city, String number, int duration) {
         this.callId = callId;
-        this.call_date = call_date;
-        this.duration = duration;
-        this.city = city;
-        this.number = number;
-    }
-
-    public Call(Calendar call_date, String city, String number, int duration) {
-        this.call_date = call_date;
+        this.call_date = fixDate(call_date);
         this.duration = duration;
         this.city = city;
         this.number = number;
@@ -68,5 +61,10 @@ public class Call {
     public String dateToString() {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd");
         return dateFormat.format(call_date.getTime());
+    }
+
+    private Calendar fixDate(Calendar calendar) {
+        calendar.set(Calendar.MONTH, calendar.get(Calendar.MONTH) - 1);
+        return calendar;
     }
 }

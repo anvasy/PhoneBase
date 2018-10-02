@@ -13,7 +13,7 @@ public class Service {
         this.city = city;
         this.cost = cost;
         this.priv_coast = priv_coast;
-        this.ser_date = ser_date;
+        this.ser_date = fixDate(ser_date);
     }
 
     public Service(String city) {
@@ -50,5 +50,10 @@ public class Service {
 
     public void setSerDate(Calendar ser_date) {
         this.ser_date = ser_date;
+    }
+
+    private Calendar fixDate(Calendar calendar) {
+        calendar.set(Calendar.MONTH, calendar.get(Calendar.MONTH) - 1);
+        return calendar;
     }
 }

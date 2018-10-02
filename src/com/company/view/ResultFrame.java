@@ -6,8 +6,9 @@ import java.sql.ResultSet;
 public class ResultFrame extends JFrame {
 
     private ResultSet rs;
+    private DataTable table;
 
-    public ResultFrame(ResultSet sr) {
+    public ResultFrame(ResultSet rs) {
         this.rs = rs;
         setTitle("Результат");
         setSize(900, 250);
@@ -20,7 +21,8 @@ public class ResultFrame extends JFrame {
 
     private void initComponents() {
         JPanel panel = new JPanel(null);
-        DataTable table = new DataTable(rs);
+
+        table = new DataTable(rs);
         JScrollPane scroll = new JScrollPane(table);
 
         scroll.setBounds(50, 50, 800, 150);
@@ -29,4 +31,7 @@ public class ResultFrame extends JFrame {
         add(panel);
     }
 
+    public void showDebtors(ResultSet rs) {
+        table.debtors(rs);
+    }
 }

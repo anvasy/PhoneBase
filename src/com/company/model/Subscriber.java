@@ -13,7 +13,7 @@ public class Subscriber {
         this.number = number;
         this.fio = fio;
         this.address = address;
-        this.reg_date = reg_date;
+        this.reg_date = fixDate(reg_date);
     }
 
     public Subscriber(String number) {
@@ -55,5 +55,10 @@ public class Subscriber {
     public String dateToString() {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd");
         return dateFormat.format(reg_date.getTime());
+    }
+
+    private Calendar fixDate(Calendar calendar) {
+        calendar.set(Calendar.MONTH, calendar.get(Calendar.MONTH) - 1);
+        return calendar;
     }
 }

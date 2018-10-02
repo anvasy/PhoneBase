@@ -22,7 +22,7 @@ public class DaoServices implements Dao<Service> {
                         + "values(?,?,?,?)");
 
         ps.setString(1, service.getCity());
-        ps.setDate(2, new Date(service.getSerDate().YEAR, service.getSerDate().MONTH, service.getSerDate().DAY_OF_MONTH));
+        ps.setDate(2, new java.sql.Date(service.getSerDate().getTimeInMillis()));
         ps.setFloat(3, service.getCost());
         ps.setFloat(4, service.getPrivCoast());
         ps.execute();
@@ -39,7 +39,7 @@ public class DaoServices implements Dao<Service> {
                 "update services set ser_date=?, cost=?, priv_cost=? where city='"
                         + service.getCity() + "'");
 
-        ps.setDate(1, new Date(service.getSerDate().YEAR, service.getSerDate().MONTH, service.getSerDate().DAY_OF_MONTH));
+        ps.setDate(1, new java.sql.Date(service.getSerDate().getTimeInMillis()));
         ps.setFloat(2, service.getCost());
         ps.setFloat(3, service.getPrivCoast());
         ps.execute();

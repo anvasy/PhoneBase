@@ -4,6 +4,7 @@ import com.company.dao.DaoCalls;
 import com.company.db.DataBase;
 import com.company.model.Call;
 import com.company.model.Subscriber;
+import com.mysql.jdbc.ResultSetImpl;
 import jdk.nashorn.internal.ir.TryNode;
 import org.jdatepicker.impl.DateComponentFormatter;
 import org.jdatepicker.impl.JDatePanelImpl;
@@ -14,10 +15,12 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -29,6 +32,7 @@ public class OperatorFrame extends JFrame {
     private JButton deleteCall;
     private JButton editCall;
     private JButton addCall;
+    private JButton showDebtors;
     private JTextField city;
     private JTextField number;
     private JTextField duration;
@@ -73,6 +77,7 @@ public class OperatorFrame extends JFrame {
         number = new JTextField("Номер",40);
         duration = new JTextField("Продолжтельность",40);
         addCall = new JButton("Добавить разговор");
+        showDebtors = new JButton("Показать абонентов с задолженностями");
 
         scroll.setBounds(50, 50, 800, 150);
         calls.setBounds(50, 20, 100, 20);
@@ -83,6 +88,7 @@ public class OperatorFrame extends JFrame {
         number.setBounds(50, 315, 150, 20);
         duration.setBounds(50, 340, 150, 20);
         addCall.setBounds(50, 375, 150, 30);
+        showDebtors.setBounds(500, 205, 280, 30);
 
         panel.add(calls);
         panel.add(scroll);
@@ -93,6 +99,7 @@ public class OperatorFrame extends JFrame {
         panel.add(number);
         panel.add(duration);
         panel.add(addCall);
+        panel.add(showDebtors);
         add(panel);
     }
 
@@ -155,16 +162,35 @@ public class OperatorFrame extends JFrame {
                }
            }
        });
+       showDebtors.addActionListener(new ActionListener() {
+           @Override
+           public void actionPerformed(ActionEvent e) {
+               try {
+                   ResultSet rs = db.query("select number, fio, address, call_date, city from subscribers " +
+                           "join calls using(number)");
+                   ResultFrame rf = new ResultFrame(rs);
+                   ResultSet rs1 = db.query("select number, fio, address, call_date, city from subscribers " +
+                           "join calls using(number)");
+                   rf.showDebtors(rs1);
+               } catch (SQLException ex) {
+                   JOptionPane.showMessageDialog(null, "Error " + ex,
+                           "error", JOptionPane.ERROR_MESSAGE);
+               }
+           }
+       });
    }
 
    private Call callFromTable(int row) {
        Calendar cal = Calendar.getInstance();
-       String str = String.valueOf(callsTable.getValueAt(row, 0));
+       String str = String.valueOf(callsTable.getValueAt(row, 1));
        cal.set(Integer.valueOf(str.substring(0, 4)), Integer.valueOf(str.substring(5, 7)),Integer.valueOf(str.substring(8, 10)));
-        Call call = new Call(cal, String.valueOf(callsTable.getValueAt(
-                row, 1)), String.valueOf(callsTable.getValueAt(
-                row, 2)), Integer.valueOf(String.valueOf(callsTable.getValueAt(
-                row, 3))));
+        Call call = new Call(Integer.valueOf(String.valueOf(callsTable.getValueAt(
+                row, 0))), cal, String.valueOf(callsTable.getValueAt(
+                row, 2)), String.valueOf(callsTable.getValueAt(
+                row, 3)), Integer.valueOf(String.valueOf(callsTable.getValueAt(
+                row, 4))));
         return call;
    }
+
+
 }

@@ -6,6 +6,7 @@ import com.company.model.Call;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Calendar;
 
 public class DaoCalls implements Dao<Call> {
 
@@ -22,7 +23,7 @@ public class DaoCalls implements Dao<Call> {
                         + "values(?,?,?,?,?)");
 
         ps.setInt(1, call.getCallId());
-        ps.setDate(2, new Date(call.getCallDate().YEAR, call.getCallDate().MONTH, call.getCallDate().DAY_OF_MONTH));
+        ps.setDate(2, new java.sql.Date(call.getCallDate().getTimeInMillis()));
         ps.setString(3, call.getCity());
         ps.setString(4, call.getNumber());
         ps.setInt(5, call.getDuration());
@@ -37,12 +38,12 @@ public class DaoCalls implements Dao<Call> {
     @Override
     public void update(Call call) throws SQLException {
         PreparedStatement ps = (PreparedStatement) db.getCn().prepareStatement(
-                "update calls set city=?, number=?, duration=? call_date=? where call_id = '"
+                "update calls set call_date=?, city=?, number=?, duration=? where call_id = "
                         + call.getCallId());
-        ps.setString(1, call.getCity());
-        ps.setString(2, call.getNumber());
-        ps.setInt(3, call.getDuration());
-        ps.setDate(4, new Date(call.getCallDate().YEAR, call.getCallDate().MONTH, call.getCallDate().DAY_OF_MONTH));
+        ps.setString(2, call.getCity());
+        ps.setString(3, call.getNumber());
+        ps.setInt(4, call.getDuration());
+        ps.setDate(1, new java.sql.Date(call.getCallDate().getTimeInMillis()));
         ps.execute();
     }
 }

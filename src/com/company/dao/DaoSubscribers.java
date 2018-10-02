@@ -24,7 +24,7 @@ public class DaoSubscribers implements Dao<Subscriber> {
         ps.setString(1, subscriber.getNumber());
         ps.setString(2, subscriber.getFio());
         ps.setString(3, subscriber.getAddress());
-        ps.setDate(4, new Date(subscriber.getRegDate().YEAR, subscriber.getRegDate().MONTH, subscriber.getRegDate().DAY_OF_MONTH));
+        ps.setDate(4, new java.sql.Date(subscriber.getRegDate().getTimeInMillis()));
         ps.execute();
     }
 
@@ -42,7 +42,7 @@ public class DaoSubscribers implements Dao<Subscriber> {
 
         ps.setString(1, subscriber.getFio());
         ps.setString(2, subscriber.getAddress());
-        ps.setDate(3, new Date(subscriber.getRegDate().YEAR, subscriber.getRegDate().MONTH, subscriber.getRegDate().DAY_OF_MONTH));
+        ps.setDate(3, new java.sql.Date(subscriber.getRegDate().getTimeInMillis()));
         ps.execute();
     }
 }
