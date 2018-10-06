@@ -17,6 +17,7 @@ import java.awt.event.ActionListener;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Time;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Properties;
@@ -33,9 +34,13 @@ public class OperatorFrame extends JFrame {
     private JButton editCall;
     private JButton addCall;
     private JButton showDebtors;
+    private JButton chooseSubscribers;
     private JTextField city;
     private JTextField number;
+    private JTextField time;
     private JTextField duration;
+    private JTextField chooseCity;
+    private JTextField chooseMonth;
     private UtilDateModel callModel;
     private JDatePanelImpl callPanel;
     private JDatePickerImpl callPicker;
@@ -43,7 +48,7 @@ public class OperatorFrame extends JFrame {
     public OperatorFrame(DataBase db) {
         this.db = db;
         setTitle("Оператор");
-        setSize(900, 450);
+        setSize(900, 480);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         initComponents();
@@ -58,7 +63,7 @@ public class OperatorFrame extends JFrame {
         deleteCall = new JButton("Удалить разговор");
         editCall = new JButton("Редактировать разговор");
         try {
-            callsTable = new DataTable(db.query("select * from calls"));
+            callsTable = new DataTable(db.query("select * from calls"), true);
             scroll = new JScrollPane(callsTable);
         } catch (SQLException ex) {
             Logger.getLogger(OperatorFrame.class.getName()).log(Level.SEVERE,
@@ -75,20 +80,28 @@ public class OperatorFrame extends JFrame {
         callPicker = new JDatePickerImpl(callPanel, new DateComponentFormatter());
         city = new JTextField("Город",40);
         number = new JTextField("Номер",40);
+        time = new JTextField("Время", 40);
         duration = new JTextField("Продолжтельность",40);
         addCall = new JButton("Добавить разговор");
         showDebtors = new JButton("Показать абонентов с задолженностями");
+        chooseCity = new JTextField("Город", 40);
+        chooseMonth = new JTextField("Номер месяца", 40);
+        chooseSubscribers = new JButton("Найти абонентов");
 
         scroll.setBounds(50, 50, 800, 150);
         calls.setBounds(50, 20, 100, 20);
         deleteCall.setBounds(50, 205, 150, 30);
         editCall.setBounds(250, 205, 200, 30);
         callPicker.setBounds(50, 255, 150, 30);
-        city.setBounds(50, 290, 150, 20);
-        number.setBounds(50, 315, 150, 20);
-        duration.setBounds(50, 340, 150, 20);
-        addCall.setBounds(50, 375, 150, 30);
+        time.setBounds(50, 290, 150, 20);
+        city.setBounds(50, 315, 150, 20);
+        number.setBounds(50, 340, 150, 20);
+        duration.setBounds(50, 375, 150, 20);
+        addCall.setBounds(50, 400, 150, 30);
         showDebtors.setBounds(500, 205, 280, 30);
+        chooseCity.setBounds(260, 255, 150, 20);
+        chooseMonth.setBounds(260, 280, 150, 20);
+        chooseSubscribers.setBounds(260, 315, 150, 30);
 
         panel.add(calls);
         panel.add(scroll);
@@ -97,9 +110,13 @@ public class OperatorFrame extends JFrame {
         panel.add(callPicker);
         panel.add(city);
         panel.add(number);
+        panel.add(time);
         panel.add(duration);
         panel.add(addCall);
         panel.add(showDebtors);
+        panel.add(chooseCity);
+        panel.add(chooseMonth);
+        panel.add(chooseSubscribers);
         add(panel);
     }
 
@@ -151,8 +168,10 @@ public class OperatorFrame extends JFrame {
                    Calendar cal = Calendar.getInstance();
                    Date date = (Date) callPicker.getModel().getValue();
                    cal.setTime(date);
+                   String str[] = time.getText().split(":");
+                   Time time = new Time(Integer.valueOf(str[0]),Integer.valueOf(str[1]),0);
                    Call call = new Call(maxId + 1, cal, city.getText(),
-                           number.getText(), Integer.valueOf(duration.getText()));
+                           number.getText(), Integer.valueOf(duration.getText()), time);
                    DaoCalls calls = new DaoCalls(db);
                    calls.insert(call);
                    callsTable.updateTable(db.query("select * from calls"));
@@ -167,11 +186,26 @@ public class OperatorFrame extends JFrame {
            public void actionPerformed(ActionEvent e) {
                try {
                    ResultSet rs = db.query("select number, fio, address, call_date, city from subscribers " +
-                           "join calls using(number)");
+                           "join calls using(number) where is_paid = 0");
                    ResultFrame rf = new ResultFrame(rs);
                    ResultSet rs1 = db.query("select number, fio, address, call_date, city from subscribers " +
-                           "join calls using(number)");
+                           "join calls using(number) where is_paid = 0");
                    rf.showDebtors(rs1);
+               } catch (SQLException ex) {
+                   JOptionPane.showMessageDialog(null, "Error " + ex,
+                           "error", JOptionPane.ERROR_MESSAGE);
+               }
+           }
+       });
+       chooseSubscribers.addActionListener(new ActionListener() {
+           @Override
+           public void actionPerformed(ActionEvent e) {
+               String city = chooseCity.getText();
+               int month = Integer.valueOf(chooseMonth.getText());
+               try {
+                   new ResultFrame(db.query("select call_date, number, fio from subscribers " +
+                           "left join calls using (number) " +
+                           "where calls.city = '" + city + "' AND MONTH(call_date) = " + month));
                } catch (SQLException ex) {
                    JOptionPane.showMessageDialog(null, "Error " + ex,
                            "error", JOptionPane.ERROR_MESSAGE);
@@ -184,12 +218,14 @@ public class OperatorFrame extends JFrame {
        Calendar cal = Calendar.getInstance();
        String str = String.valueOf(callsTable.getValueAt(row, 1));
        cal.set(Integer.valueOf(str.substring(0, 4)), Integer.valueOf(str.substring(5, 7)),Integer.valueOf(str.substring(8, 10)));
-        Call call = new Call(Integer.valueOf(String.valueOf(callsTable.getValueAt(
+       String st[] = String.valueOf(callsTable.getValueAt(row, 0)).split(":");
+       Time time = new Time(Integer.valueOf(st[0]),Integer.valueOf(st[1]),0);
+       Call call = new Call(Integer.valueOf(String.valueOf(callsTable.getValueAt(
                 row, 0))), cal, String.valueOf(callsTable.getValueAt(
                 row, 2)), String.valueOf(callsTable.getValueAt(
                 row, 3)), Integer.valueOf(String.valueOf(callsTable.getValueAt(
-                row, 4))));
-        return call;
+                row, 4))), time);
+        return new Call(1);
    }
 
 

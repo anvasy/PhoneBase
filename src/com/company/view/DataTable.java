@@ -15,12 +15,14 @@ public class DataTable extends JTable {
     private DefaultTableModel  dtm;
 
 
-    public DataTable(ResultSet rs) {
+    public DataTable(ResultSet rs, boolean isEditable) {
 
         dtm = new DefaultTableModel() {
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return !(columnIndex == 0);
+                if(isEditable)
+                    return !(columnIndex == 0);
+                return false;
             }
         };
 

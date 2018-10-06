@@ -37,7 +37,6 @@ public class TechnologistFrame extends JFrame {
     private JButton addService;
     private JButton editSubscriber;
     private JButton editService;
-    private JButton chooseSubscribers;
     private JButton showServices;
     private JTextField number;
     private JTextField address;
@@ -45,8 +44,6 @@ public class TechnologistFrame extends JFrame {
     private JTextField city;
     private JTextField cost;
     private JTextField privCost;
-    private JTextField chooseCity;
-    private JTextField chooseMonth;
     private UtilDateModel regModel;
     private JDatePanelImpl regPanel;
     private JDatePickerImpl regPicker;
@@ -75,7 +72,7 @@ public class TechnologistFrame extends JFrame {
         deleteSubscriber = new JButton("Удалить абонента");
         editSubscriber = new JButton("Редактировать абонента");
         try {
-            subsTable = new DataTable(db.query("select * from subscribers"));
+            subsTable = new DataTable(db.query("select * from subscribers"), true);
             subsScroll = new JScrollPane(subsTable);
         } catch (SQLException ex) {
             Logger.getLogger(OperatorFrame.class.getName()).log(Level.SEVERE,
@@ -85,7 +82,7 @@ public class TechnologistFrame extends JFrame {
         deleteService = new JButton("Удалить услугу");
         editService = new JButton("Редактировать услугу");
         try {
-            servTable = new DataTable(db.query("select * from services"));
+            servTable = new DataTable(db.query("select * from services"), true);
             servScroll = new JScrollPane(servTable);
         } catch (SQLException ex) {
             Logger.getLogger(OperatorFrame.class.getName()).log(Level.SEVERE,
@@ -119,11 +116,6 @@ public class TechnologistFrame extends JFrame {
         servPicker = new JDatePickerImpl(servPanel, new DateComponentFormatter());
         addService = new JButton("Добавить услугу");
 
-        chooseCity = new JTextField("Город", 40);
-        chooseMonth = new JTextField("Номер месяца", 40);
-        chooseSubscribers = new JButton("Найти абонентов");
-
-
         subscribers.setBounds(50, 20, 100, 20);
         subsScroll.setBounds(50, 50, 800, 150);
         deleteSubscriber.setBounds(50, 205, 150, 30);
@@ -136,17 +128,14 @@ public class TechnologistFrame extends JFrame {
         fio.setBounds(50, 505, 150, 20);
         address.setBounds(50, 530, 150, 20);
         regPicker.setBounds(50, 555, 150, 30);
-        addSubscriber.setBounds(50, 600, 150, 30);
+        addSubscriber.setBounds(50, 590, 150, 30);
         city.setBounds(260, 480, 150, 20);
         cost.setBounds(260, 505, 150, 20);
         privCost.setBounds(260, 530, 150, 20);
         servPicker.setBounds(260, 555, 150, 30);
         addService.setBounds(260, 600, 150, 30);
-        chooseCity.setBounds(470, 480, 150, 20);
-        chooseMonth.setBounds(470, 505, 150, 20);
-        chooseSubscribers.setBounds(470, 540, 150, 30);
-        chooseDatePicker.setBounds(680, 480, 150, 30);
-        showServices.setBounds(680, 515, 150, 30);
+        chooseDatePicker.setBounds(480, 480, 150, 30);
+        showServices.setBounds(480, 515, 150, 30);
 
         panel.add(subscribers);
         panel.add(subsScroll);
@@ -166,9 +155,6 @@ public class TechnologistFrame extends JFrame {
         panel.add(privCost);
         panel.add(servPicker);
         panel.add(addService);
-        panel.add(chooseCity);
-        panel.add(chooseMonth);
-        panel.add(chooseSubscribers);
         panel.add(chooseDatePicker);
         panel.add(showServices);
         add(panel);
@@ -244,6 +230,9 @@ public class TechnologistFrame extends JFrame {
                 } catch (SQLException ex) {
                     JOptionPane.showMessageDialog(null, "Error " + ex,
                             "error", JOptionPane.ERROR_MESSAGE);
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(null, "Error " + ex,
+                            "error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
@@ -269,6 +258,9 @@ public class TechnologistFrame extends JFrame {
                 } catch (SQLException ex) {
                     JOptionPane.showMessageDialog(null, "Error " + ex,
                             "error", JOptionPane.ERROR_MESSAGE);
+                } catch (StringIndexOutOfBoundsException ex) {
+                    JOptionPane.showMessageDialog(null, "Error " + ex,
+                            "error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
@@ -292,23 +284,11 @@ public class TechnologistFrame extends JFrame {
                 } catch(SQLException ex) {
                     JOptionPane.showMessageDialog(null, "Error " + ex,
                             "error", JOptionPane.ERROR_MESSAGE);
+                } catch (StringIndexOutOfBoundsException ex) {
+                        JOptionPane.showMessageDialog(null, "Error " + ex,
+                                "error", JOptionPane.ERROR_MESSAGE);
                 }
 
-            }
-        });
-        chooseSubscribers.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String city = chooseCity.getText();
-                int month = Integer.valueOf(chooseMonth.getText());
-                try {
-                    new ResultFrame(db.query("select call_date, number, fio from subscribers " +
-                            "left join calls using (number) " +
-                            "where calls.city = '" + city + "' AND MONTH(call_date) = " + month));
-                } catch (SQLException ex) {
-                    JOptionPane.showMessageDialog(null, "Error " + ex,
-                            "error", JOptionPane.ERROR_MESSAGE);
-                }
             }
         });
         showServices.addActionListener(new ActionListener() {

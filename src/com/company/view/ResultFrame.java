@@ -22,7 +22,7 @@ public class ResultFrame extends JFrame {
     private void initComponents() {
         JPanel panel = new JPanel(null);
 
-        table = new DataTable(rs);
+        table = new DataTable(rs, false);
         JScrollPane scroll = new JScrollPane(table);
 
         scroll.setBounds(50, 50, 800, 150);
